@@ -16,13 +16,13 @@ export function ReportsSection({ currentPath }: ReportsSectionProps) {
     >
       <NavItem 
         href="/reports" 
-        depth={1}
+        isActive={currentPath === "/reports"}
       >
         Standard Reports
       </NavItem>
       <NavItem 
         href="/reports/custom" 
-        depth={1}
+        isActive={currentPath === "/reports/custom"}
       >
         Custom Reports
       </NavItem>

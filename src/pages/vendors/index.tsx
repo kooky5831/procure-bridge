@@ -1,40 +1,45 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { VendorList } from "@/components/maintenance/vendor/VendorList";
-import { CreateVendorDialog } from "@/components/maintenance/vendor/CreateVendorDialog";
-import { HorizontalAssetsTabs } from "@/components/assets/HorizontalAssetsTabs";
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { ArrowRight } from "lucide-react";
 
 export default function Vendors() {
-  const [isCreateVendorOpen, setIsCreateVendorOpen] = useState(false);
+  const location = useLocation();
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto px-4 py-6 sm:py-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Vendors</h1>
-          <p className="text-muted-foreground">Manage your organization's service providers and suppliers</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-primary">Vendors</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage your organization's service providers</p>
         </div>
-        <Button 
-          onClick={() => setIsCreateVendorOpen(true)}
-          className="inline-flex items-center justify-center"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Vendor
-        </Button>
       </div>
 
-      <HorizontalAssetsTabs tabSet="vendors" />
-
-      <div className="space-y-4">
-        <VendorList />
+      <div className="border-b mb-6">
+        <nav className="flex space-x-8">
+          {["Asset List", "Maintenance", "Vendors"].map((item) => (
+            <Link
+              key={item}
+              to={item === "Asset List" ? "/assets" : 
+                  item === "Maintenance" ? "/maintenance" : "/vendors"}
+              className={cn(
+                "flex items-center py-4 px-1 border-b-2 text-sm font-medium transition-colors hover:border-gray-300 hover:text-gray-700",
+                location.pathname === 
+                  (item === "Asset List" ? "/assets" : 
+                   item === "Maintenance" ? "/maintenance" : "/vendors")
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground"
+              )}
+            >
+              {item}
+              {item === "Maintenance" && <ArrowRight className="ml-1 h-4 w-4" />}
+            </Link>
+          ))}
+        </nav>
       </div>
-      
-      <CreateVendorDialog
-        open={isCreateVendorOpen}
-        onOpenChange={setIsCreateVendorOpen}
-      />
-    </main>
+
+      <VendorList />
+    </div>
   );
 }

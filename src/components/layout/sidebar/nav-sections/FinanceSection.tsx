@@ -18,24 +18,28 @@ export function FinanceSection({ currentPath }: FinanceSectionProps) {
     >
       <NavItem 
         href="/admin/finance/depreciation-setup" 
+        isActive={currentPath === "/admin/finance/depreciation-setup"}
         depth={1}
       >
         Depreciation Setup
       </NavItem>
       <NavItem 
         href="/admin/finance/depreciation-schedule" 
+        isActive={currentPath === "/admin/finance/depreciation-schedule"}
         depth={1}
       >
         Depreciation Schedules
       </NavItem>
       <NavItem 
         href="/admin/finance/impairment-revaluation" 
+        isActive={currentPath === "/admin/finance/impairment-revaluation"}
         depth={1}
       >
         Revaluation/Impairment
       </NavItem>
       <NavItem 
         href="/admin/finance/erp-integration" 
+        isActive={currentPath === "/admin/finance/erp-integration"}
         depth={1}
       >
         ERP Integration

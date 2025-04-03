@@ -1,6 +1,8 @@
 
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { maintenanceService } from "@/services/maintenance";
 import {
   Dialog,
   DialogContent,
@@ -21,12 +23,15 @@ import { toast } from "sonner";
 interface CreateMaintenanceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void; // Add this prop
 }
 
 export function CreateMaintenanceDialog({
   open,
   onOpenChange,
+  onSuccess,
 }: CreateMaintenanceDialogProps) {
+  const { toast } = useToast();
   const form = useForm<MaintenanceFormData>({
     defaultValues: {
       assetId: "",
@@ -36,23 +41,52 @@ export function CreateMaintenanceDialog({
       vendor: "",
       status: "Scheduled",
       notes: [],
-      attachments: []
+      attachments: [],
+      scheduledDate: new Date(),
     },
   });
 
-  const onSubmit = (data: MaintenanceFormData) => {
-    // Convert the form data to match MaintenanceTask type
-    const maintenanceTask = {
-      ...data,
-      id: `MAINT-${Math.random().toString(36).substr(2, 9)}`,
-      assetName: "Asset Name", // This would come from asset lookup in real implementation
-      scheduledDate: data.scheduledDate.toISOString(),
-    };
-    
-    console.log("Maintenance task created:", maintenanceTask);
-    toast.success("Maintenance task created successfully");
-    onOpenChange(false);
-    form.reset();
+  const onSubmit = async (data: MaintenanceFormData) => {
+    try {
+
+      // Format the date to YYYY-MM-DD format
+      const formattedDate = data.scheduledDate.toISOString().split('T')[0];
+
+      const apiData = {
+        task_type: data.maintenanceType === "Internal" ? "internal_maintenance" : "external_maintenance",
+        maintenance_type: (data.maintenanceType === "Internal" ? "internal_maintenance" : "external_maintenance") as "internal_maintenance" | "external_maintenance",
+        description: data.description,
+        scheduled_date: formattedDate,
+        cost: data.cost.toString(),
+        asset: parseInt(data.assetId.replace('AST', '')),
+        company: 1,
+        status: "incomplete" as "incomplete" | "in_progress" | "completed",
+        vendor: data.vendor || undefined,
+        assigned_to: 1,
+        priority: "medium" as "low" | "medium" | "high",
+        completed_at: null,
+        task_id: `TSK${Date.now()}`,
+        asset_name: ""
+      };
+      console.log('Sending to API:', apiData);
+      const response = await maintenanceService.createMaintenance(apiData);
+      console.log('API Response:', response);
+
+      toast({
+        title: "Success",
+        description: "Maintenance task created successfully"
+      });
+      onOpenChange(false);
+      form.reset();
+      onSuccess?.(); // Call the refresh function after successful creation
+    } catch (error: any) {
+      console.error('API Error:', error.response?.data || error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create maintenance task",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

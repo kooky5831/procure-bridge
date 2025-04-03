@@ -23,12 +23,12 @@ interface RevaluationTypeSelectProps {
 
 const revaluationTypes = [
   { value: "upward", label: "Upward Revaluation" },
-  { value: "downward", label: "Downward Revaluation (Impairment)" }
+  { value: "downward", label: "Downward Revaluation" }
 ];
 
 export function RevaluationTypeSelect({ form }: RevaluationTypeSelectProps) {
-  const selectedCategory = form.watch("categoryId");
-  const revaluationPercentage = form.watch("revaluationPercentage");
+  const selectedAsset = form.watch("assetId");
+  const fairValue = form.watch("fairValue");
 
   return (
     <FormField
@@ -40,7 +40,7 @@ export function RevaluationTypeSelect({ form }: RevaluationTypeSelectProps) {
           <Select 
             onValueChange={field.onChange} 
             value={field.value}
-            disabled={!selectedCategory || revaluationPercentage === 0}
+            disabled={!selectedAsset || !fairValue}
           >
             <FormControl>
               <SelectTrigger className={cn(
