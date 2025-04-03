@@ -3,15 +3,14 @@ import type { Database } from '@/integrations/supabase/types';
 
 export type AssetCategory = Database['public']['Enums']['asset_category'];
 
-export interface RequestLineItem {
-  id: string;
+export interface CreateRequestForm {
   title: string;
   assetCategory: AssetCategory;
   quantity: number;
   unitCost: number;
-  // Item Master reference
-  itemMasterId?: string;
-  // Optional IT Asset specific fields
+  costCenter: string;
+  justification: string;
+  // IT Asset specific fields
   itCategory?: string;
   brandModel?: string;
   processor?: string;
@@ -21,13 +20,6 @@ export interface RequestLineItem {
   otherSpecs?: string;
   condition?: string;
   conditionNotes?: string;
-}
-
-export interface CreateRequestForm {
-  title: string;
-  costCenter: string;
-  justification: string;
-  lineItems: RequestLineItem[];
 }
 
 export const assetCategories = [

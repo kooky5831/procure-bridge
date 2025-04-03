@@ -7,11 +7,3 @@ export const disposalReasons = [
   "Donation",
   "Other",
 ] as const;
-
-export const disposalMethods = [
-  "Scrapped",
-  "Sold",
-  "Donated",
-  "Transferred",
-  "Other"
-] as const;

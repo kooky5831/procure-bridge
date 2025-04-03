@@ -1,5 +1,5 @@
 
-import { Settings, Users2, ShieldCheck, Building2, Link2, Building, History, GitBranch, Tag } from "lucide-react";
+import { Settings, Users2, ShieldCheck, Building2, Link2, Building, History, GitBranch } from "lucide-react";
 import { NavGroup } from "../NavGroup";
 import { NavItem } from "../NavItem";
 
@@ -41,13 +41,6 @@ export function AdminSection({ currentPath }: AdminSectionProps) {
       >
         <Building2 className="h-4 w-4 mr-2" />
         Departments
-      </NavItem>
-      <NavItem 
-        href="/admin/item-master" 
-        isActive={currentPath === "/admin/item-master"}
-      >
-        <Tag className="h-4 w-4 mr-2" />
-        Item Master
       </NavItem>
       <NavItem 
         href="/admin/integrations" 

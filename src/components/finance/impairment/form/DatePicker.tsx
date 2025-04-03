@@ -1,15 +1,5 @@
 
 import { UseFormReturn } from "react-hook-form";
-import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   FormControl,
   FormField,
@@ -17,6 +7,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import type { ImpairmentFormData } from "../types";
 
 interface DatePickerProps {
@@ -31,35 +26,46 @@ export function DatePicker({ form }: DatePickerProps) {
       render={({ field }) => (
         <FormItem className="flex flex-col">
           <FormLabel className="text-base font-semibold">Effective Date</FormLabel>
-          <Popover>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "px-3 py-5 h-auto text-left font-normal",
-                    !field.value && "text-muted-foreground"
-                  )}
-                >
-                  {field.value ? (
-                    format(field.value, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+          <div className="relative">
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal px-3 py-5 h-auto",
+                !field.value && "text-muted-foreground"
+              )}
+              onClick={(e) => {
+                e.preventDefault();
+                const calendarElement = document.getElementById('impairment-calendar');
+                if (calendarElement) {
+                  calendarElement.style.display = calendarElement.style.display === 'none' ? 'block' : 'none';
+                }
+              }}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {field.value ? format(field.value, "PPP") : "Pick a date"}
+            </Button>
+            <div
+              id="impairment-calendar"
+              className="absolute top-[calc(100%+4px)] left-0 z-[9999] bg-white border rounded-md shadow-lg p-3"
+              style={{ display: 'none' }}
+            >
               <Calendar
                 mode="single"
                 selected={field.value}
-                onSelect={field.onChange}
-                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                onSelect={(newDate) => {
+                  field.onChange(newDate);
+                  const calendarElement = document.getElementById('impairment-calendar');
+                  if (calendarElement) {
+                    calendarElement.style.display = 'none';
+                  }
+                }}
+                disabled={(date) =>
+                  date > new Date() || date < new Date("1900-01-01")
+                }
                 initialFocus
               />
-            </PopoverContent>
-          </Popover>
+            </div>
+          </div>
           <FormMessage />
         </FormItem>
       )}

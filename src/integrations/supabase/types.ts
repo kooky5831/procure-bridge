@@ -193,11 +193,9 @@ export type Database = {
           checked_by: string | null
           created_at: string | null
           created_by: string | null
-          grn_number: string | null
           id: string
           notes: string | null
           purchase_order_id: string | null
-          purchase_order_number: string | null
           received_date: string | null
           request_id: string | null
           status: Database["public"]["Enums"]["grn_status"] | null
@@ -216,11 +214,9 @@ export type Database = {
           checked_by?: string | null
           created_at?: string | null
           created_by?: string | null
-          grn_number?: string | null
           id?: string
           notes?: string | null
           purchase_order_id?: string | null
-          purchase_order_number?: string | null
           received_date?: string | null
           request_id?: string | null
           status?: Database["public"]["Enums"]["grn_status"] | null
@@ -239,11 +235,9 @@ export type Database = {
           checked_by?: string | null
           created_at?: string | null
           created_by?: string | null
-          grn_number?: string | null
           id?: string
           notes?: string | null
           purchase_order_id?: string | null
-          purchase_order_number?: string | null
           received_date?: string | null
           request_id?: string | null
           status?: Database["public"]["Enums"]["grn_status"] | null
@@ -513,139 +507,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
-      }
-      purchase_order_items: {
-        Row: {
-          created_at: string | null
-          description: string
-          id: string
-          item_number: number | null
-          po_id: string | null
-          quantity: number
-          remarks: string | null
-          total_price: number
-          unit_of_measure: string | null
-          unit_price: number
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description: string
-          id?: string
-          item_number?: number | null
-          po_id?: string | null
-          quantity: number
-          remarks?: string | null
-          total_price: number
-          unit_of_measure?: string | null
-          unit_price: number
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string
-          id?: string
-          item_number?: number | null
-          po_id?: string | null
-          quantity?: number
-          remarks?: string | null
-          total_price?: number
-          unit_of_measure?: string | null
-          unit_price?: number
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "purchase_order_items_po_id_fkey"
-            columns: ["po_id"]
-            isOneToOne: false
-            referencedRelation: "purchase_orders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      purchase_orders: {
-        Row: {
-          advance_payment: number | null
-          approved_at: string | null
-          approved_by: string | null
-          checked_at: string | null
-          checked_by: string | null
-          created_at: string | null
-          created_by: string | null
-          id: string
-          notes: string | null
-          place_of_delivery: string | null
-          po_date: string
-          po_number: string
-          request_id: string | null
-          status: string | null
-          supplier_address: string | null
-          supplier_name: string
-          supplier_tin: string | null
-          terms_of_delivery: string | null
-          terms_of_payment: string | null
-          time_of_delivery: string | null
-          total_amount: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          advance_payment?: number | null
-          approved_at?: string | null
-          approved_by?: string | null
-          checked_at?: string | null
-          checked_by?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          notes?: string | null
-          place_of_delivery?: string | null
-          po_date: string
-          po_number: string
-          request_id?: string | null
-          status?: string | null
-          supplier_address?: string | null
-          supplier_name: string
-          supplier_tin?: string | null
-          terms_of_delivery?: string | null
-          terms_of_payment?: string | null
-          time_of_delivery?: string | null
-          total_amount?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          advance_payment?: number | null
-          approved_at?: string | null
-          approved_by?: string | null
-          checked_at?: string | null
-          checked_by?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          notes?: string | null
-          place_of_delivery?: string | null
-          po_date?: string
-          po_number?: string
-          request_id?: string | null
-          status?: string | null
-          supplier_address?: string | null
-          supplier_name?: string
-          supplier_tin?: string | null
-          terms_of_delivery?: string | null
-          terms_of_payment?: string | null
-          time_of_delivery?: string | null
-          total_amount?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "purchase_orders_request_id_fkey"
-            columns: ["request_id"]
-            isOneToOne: false
-            referencedRelation: "requests"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       requests: {
         Row: {

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -36,6 +36,7 @@ const citiesByCountry: { [key: string]: string[] } = {
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   code: z.string().min(2, "Code must be at least 2 characters"),
+  // company: z.string().min(1, "Company is required"),
   type: z.string().min(1, "Please select a type"),
   country: z.string().min(1, "Please select a country"),
   city: z.string().min(1, "Please select a city"),
@@ -43,16 +44,20 @@ const formSchema = z.object({
 });
 
 interface LocationFormProps {
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onSubmit: (values: z.infer<typeof formSchema>, id:unknown) => void;
   onCancel: () => void;
+  loading: unknown,
+  locationData: unknown,
+  id:unknown
 }
 
-export function LocationForm({ onSubmit, onCancel }: LocationFormProps) {
+export function LocationForm({ onSubmit, onCancel, loading, locationData, id }: LocationFormProps) {
   const [selectedCountry, setSelectedCountry] = useState<string>("");
-  
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: locationData || {
       name: "",
       code: "",
       type: "",
@@ -67,10 +72,21 @@ export function LocationForm({ onSubmit, onCancel }: LocationFormProps) {
     form.setValue("country", value);
     form.setValue("city", ""); // Reset city when country changes
   };
-
+  const handleTypeChange = (value: string) => {
+    setSelectedType(value);
+    form.setValue("type", value);
+  };
+  const handleCityChange = (value: string) => {
+    setSelectedCity(value);
+    form.setValue("city", value);
+  };
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    const companyId = localStorage.getItem("userData");
+    // if (companyId) {
+    //   form.setValue("company", companyId); // Ensure the form value is updated
+    // }
     try {
-      await onSubmit(values);
+     await onSubmit({ ...values, company: companyId }, id);
       form.reset();
       toast.success("Location created successfully");
     } catch (error) {
@@ -78,6 +94,23 @@ export function LocationForm({ onSubmit, onCancel }: LocationFormProps) {
     }
   };
 
+  useEffect(() => {
+    if (locationData) {
+      const formattedData = {
+        name: locationData.name || "",
+        code: locationData.code || "",
+        type: locationData.location_type || "", // Mapping location_type -> type
+        country: locationData.country || "",
+        city: locationData.city || "",
+        address: locationData.address || "",
+      };
+  
+      form.reset(formattedData);
+      setSelectedCountry(formattedData.country);
+      setSelectedType(formattedData.type);
+      setSelectedCity(formattedData.city);
+    }
+  }, [locationData, form]);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -117,7 +150,7 @@ export function LocationForm({ onSubmit, onCancel }: LocationFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Location Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={handleTypeChange} defaultValue={field.value }>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a type" />
@@ -168,7 +201,7 @@ export function LocationForm({ onSubmit, onCancel }: LocationFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>City</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={handleCityChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger disabled={!selectedCountry}>
                       <SelectValue placeholder="Select a city" />
@@ -207,7 +240,18 @@ export function LocationForm({ onSubmit, onCancel }: LocationFormProps) {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit">Create Location</Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="h-5 w-5 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2" />
+                Creating...
+              </div>
+            ) : (
+              <div className="flex items-center justify-center">
+                Create Location
+              </div>
+            )}
+          </Button>
         </div>
       </form>
     </Form>

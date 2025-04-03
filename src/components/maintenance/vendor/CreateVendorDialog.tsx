@@ -1,6 +1,8 @@
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { vendorService } from "@/services/vendors";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,45 +19,80 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 
+// Update schema to match API requirements
+// Remove company from schema
 const vendorFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(1, "Phone number is required"),
+  service_categories: z.string().min(1, "Service categories are required"),
   address: z.string().optional(),
-  category: z.string().min(1, "At least one category is required"),
+  status: z.enum(["Active", "Inactive"]).default("Active"),
+  contact_person: z.string().min(1, "Contact person is required"),
+  service_type: z.string().min(1, "Service type is required")
 });
 
 type VendorFormData = z.infer<typeof vendorFormSchema>;
 
+
 interface CreateVendorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onVendorCreated?: () => void;
 }
 
 export function CreateVendorDialog({
   open,
   onOpenChange,
+  onVendorCreated,
 }: CreateVendorDialogProps) {
+  const { toast } = useToast();
   const form = useForm<VendorFormData>({
     defaultValues: {
       name: "",
       email: "",
       phone: "",
+      service_categories: "",
       address: "",
-      category: "",
+      status: "Active" as const,
+      contact_person: "",
+      service_type: ""
     },
   });
 
-  const onSubmit = (data: VendorFormData) => {
-    // In a real implementation, this would create a new vendor
-    console.log("Creating vendor:", data);
-    toast.success("Vendor created successfully");
-    onOpenChange(false);
-    form.reset();
+  const onSubmit = async (data: VendorFormData) => {
+    try {
+      const response = await vendorService.createVendor({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        service_categories: data.service_categories,
+        address: data.address || "",
+        status: data.status.toLowerCase() as "active" | "inactive",
+        contact_person: data.contact_person,
+        service_type: data.service_type,
+        company: 1  
+      });
+      
+      console.log('API Response:', response); 
+      
+      toast({
+        title: "Success",
+        description: "Vendor created successfully",
+      });
+      onVendorCreated?.();
+      onOpenChange(false);
+      form.reset();
+    } catch (error: any) {
+      console.error('API Error:', error.response?.data); // Debug log
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || error.response?.data?.message || "Failed to create vendor",
+        variant: "destructive",
+      });
+    }
   };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -111,7 +148,7 @@ export function CreateVendorDialog({
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address (Optional)</FormLabel>
+                  <FormLabel>Address</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter address" {...field} />
                   </FormControl>
@@ -122,13 +159,13 @@ export function CreateVendorDialog({
 
             <FormField
               control={form.control}
-              name="category"
+              name="service_categories"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Service Categories</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Enter categories (comma-separated)"
+                      placeholder="Enter service categories"
                       {...field}
                     />
                   </FormControl>
@@ -136,7 +173,6 @@ export function CreateVendorDialog({
                 </FormItem>
               )}
             />
-
             <div className="flex justify-end gap-4 pt-4">
               <Button
                 type="button"
@@ -145,9 +181,7 @@ export function CreateVendorDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit">
-                Create Vendor
-              </Button>
+              <Button type="submit">Create Vendor</Button>
             </div>
           </form>
         </Form>

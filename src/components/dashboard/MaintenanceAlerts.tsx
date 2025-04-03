@@ -23,24 +23,19 @@ export function MaintenanceAlerts({ alerts }: { alerts: MaintenanceAlert[] }) {
   const navigate = useNavigate();
   
   return (
-    <Card className="border rounded-lg">
-      <CardHeader className="border-b pb-3 p-4">
+    <Card>
+      <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
             Maintenance Alerts
           </CardTitle>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-primary" 
-            onClick={() => navigate("/maintenance")}
-          >
+          <Button variant="outline" size="sm" onClick={() => navigate("/maintenance")}>
             View All
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
@@ -56,11 +51,9 @@ export function MaintenanceAlerts({ alerts }: { alerts: MaintenanceAlert[] }) {
                 <TableCell>{alert.dueDate}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs ${
-                    alert.priority === 'high' 
+                    alert.priority === 'High' 
                       ? 'bg-red-100 text-red-800' 
-                      : alert.priority === 'medium'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-blue-100 text-blue-800'
+                      : 'bg-yellow-100 text-yellow-800'
                   }`}>
                     {alert.priority}
                   </span>

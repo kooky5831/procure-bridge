@@ -1,36 +1,36 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type { CreateRequestForm, AssetCategory } from "../types";
-import { createDefaultLineItem } from "../components/line-item";
+import type { CreateRequestForm } from "../types";
 
-export function useCreateRequest(onComplete: () => void, initialCategory: AssetCategory = "IT Equipment") {
+export function useCreateRequest(onComplete: () => void) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
   const form = useForm<CreateRequestForm>({
     defaultValues: {
       title: "",
+      assetCategory: "IT Equipment",
+      quantity: 1,
+      unitCost: 0,
       costCenter: "",
       justification: "",
-      lineItems: [createDefaultLineItem()],
+      // IT Asset specific fields
+      itCategory: "",
+      brandModel: "",
+      processor: "",
+      memory: "",
+      storage: "",
+      color: "",
+      otherSpecs: "",
+      condition: "",
+      conditionNotes: "",
     },
   });
 
-  // Initialize first line item with correct category
-  useEffect(() => {
-    const firstItem = form.getValues("lineItems")[0];
-    if (firstItem && initialCategory) {
-      form.setValue("lineItems.0.assetCategory", initialCategory);
-    }
-  }, [form, initialCategory]);
-
   const { watch } = form;
-  const lineItems = watch("lineItems") || [];
-  
-  const totalCost = lineItems.reduce((total, item) => {
-    return total + ((item.quantity || 0) * (item.unitCost || 0));
-  }, 0);
+  const quantity = Number(watch("quantity")) || 0;
+  const unitCost = Number(watch("unitCost")) || 0;
+  const totalCost = quantity * unitCost;
 
   const onSubmit = async (data: CreateRequestForm) => {
     console.log('Starting form submission with data:', data);
@@ -39,39 +39,18 @@ export function useCreateRequest(onComplete: () => void, initialCategory: AssetC
       return;
     }
 
-    // Validate that at least one line item exists
-    if (!data.lineItems || data.lineItems.length === 0) {
-      toast.error("Please add at least one item to your request");
+    // Validate numeric fields
+    const validatedQuantity = Number(data.quantity);
+    const validatedUnitCost = Number(data.unitCost);
+
+    if (isNaN(validatedQuantity) || validatedQuantity <= 0) {
+      toast.error("Please enter a valid quantity greater than 0");
       return;
     }
 
-    // Validate each line item
-    for (let i = 0; i < data.lineItems.length; i++) {
-      const item = data.lineItems[i];
-      
-      // Check quantity
-      if (!item.quantity || item.quantity <= 0) {
-        toast.error(`Item #${i+1}: Please enter a valid quantity greater than 0`);
-        return;
-      }
-
-      // Check unit cost
-      if (item.unitCost < 0) {
-        toast.error(`Item #${i+1}: Please enter a valid unit cost (must be 0 or greater)`);
-        return;
-      }
-
-      // Check if item has a title
-      if (!item.title) {
-        toast.error(`Item #${i+1}: Please specify an item by selecting from Item Master or entering details manually`);
-        return;
-      }
-
-      // Check if asset category is specified
-      if (!item.assetCategory) {
-        toast.error(`Item #${i+1}: Please select an asset category`);
-        return;
-      }
+    if (isNaN(validatedUnitCost) || validatedUnitCost < 0) {
+      toast.error("Please enter a valid unit cost (must be 0 or greater)");
+      return;
     }
     
     setIsSubmitting(true);
@@ -79,8 +58,9 @@ export function useCreateRequest(onComplete: () => void, initialCategory: AssetC
       // Mock request creation
       console.log('Creating request:', {
         ...data,
-        status: 'DRAFT',
-        totalCost: totalCost
+        quantity: validatedQuantity,
+        unitCost: validatedUnitCost,
+        status: 'DRAFT'
       });
 
       toast.success("Request created successfully!");

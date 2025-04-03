@@ -1,230 +1,160 @@
-
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import { Toaster } from "sonner";
-import "./App.css";
-import { DefaultLayout } from "./components/layout/DefaultLayout";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate, useLocation  } from "react-router-dom";
+import { DefaultLayout } from "@/components/layout/DefaultLayout";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
-import Dashboard from "./pages/Dashboard";
 import Assets from "./pages/assets";
-import AssetDetails from "./pages/assets/[id]";
-import CreateAssetFromPO from "./pages/assets/create-from-po";
-import GRNList from "./pages/grn";
-import GRNCreate from "./pages/grn/GRNCreate";
-import GRNDetail from "./pages/grn/GRNDetail";
-import Maintenance from "./pages/maintenance";
-import PurchaseOrders from "./pages/purchase-orders";
-import PurchaseOrderDetail from "./pages/purchase-orders/[id]";
+import AssetDetail from "./pages/assets/[id]";
+import DepreciationSetup from "./pages/finance/DepreciationSetup";
+import DepreciationSchedule from "./pages/finance/DepreciationSchedule";
+import ImpairmentRevaluation from "./pages/finance/ImpairmentRevaluation";
+import ERPIntegration from "./pages/finance/ERPIntegration";
+import Reports from "./pages/reports";
 import Requests from "./pages/requests";
 import RequestDetail from "./pages/requests/[id]";
-import RequestApprovals from "./pages/requests/approvals";
-import RequestDelivery from "./pages/requests/delivery";
-import AdminCompany from "./pages/admin/company";
-import AdminDepartments from "./pages/admin/departments";
-import AdminIntegrations from "./pages/admin/integrations";
-import AdminLocations from "./pages/admin/locations";
-import AdminRoles from "./pages/admin/roles";
-import AdminUsers from "./pages/admin/users";
-import AdminWorkflow from "./pages/admin/workflow";
-import AdminAuditLogs from "./pages/admin/audit-logs";
-import ItemMasterPage from "./pages/admin/item-master";
+import Approvals from "./pages/requests/approvals";
+import Maintenance from "./pages/maintenance";
 import Vendors from "./pages/vendors";
-import Reports from "./pages/reports";
-import FinanceSetup from "./pages/finance";
-import DepreciationSchedule from "./pages/finance/DepreciationSchedule";
-import DepreciationSetup from "./pages/finance/DepreciationSetup";
-import ERPIntegration from "./pages/finance/ERPIntegration";
-import ImpairmentRevaluation from "./pages/finance/ImpairmentRevaluation";
-import { Outlet } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import Users from "./pages/admin/users";
+import Roles from "./pages/admin/roles";
+import Workflow from "./pages/admin/workflow";
+import Departments from "./pages/admin/departments";
+import Integrations from "./pages/admin/integrations";
+import CompanySetup from "./pages/admin/company";
+import AuditLogs from "./pages/admin/audit-logs";
+import GRNList from "./pages/grn/GRNList";
+import GRNCreate from "./pages/grn/GRNCreate";
+import GRNDetail from "./pages/grn/GRNDetail";
+import DeliveryRequests from "./pages/requests/delivery";
+import Login from "./pages/login";
+import Signup from "./pages/signup";
 
-// Create a client
-const queryClient = new QueryClient();
 
-const router = createBrowserRouter([
-  {
-    element: (
-      <TooltipProvider>
-        <DefaultLayout>
-          <Outlet />
-        </DefaultLayout>
-      </TooltipProvider>
-    ),
-    children: [
-      {
-        path: "/",
-        element: <Dashboard />,
-      },
-      {
-        path: "/dashboard",
-        element: <Dashboard />,
-      },
-      {
-        path: "/profile",
-        element: <Profile />,
-      },
-      {
-        path: "/assets",
-        element: <Assets />,
-      },
-      {
-        path: "/assets/:id",
-        element: <AssetDetails />,
-      },
-      {
-        path: "/assets/request",
-        element: <Requests />,
-      },
-      {
-        path: "/assets/create-from-po",
-        element: <CreateAssetFromPO />,
-      },
-      {
-        path: "/assets/disposal",
-        element: <Assets />,
-      },
-      {
-        path: "/assets/capitalisation",
-        element: <Assets />,
-      },
-      {
-        path: "/grn",
-        element: <GRNList />,
-      },
-      {
-        path: "/grn/create",
-        element: <GRNCreate />,
-      },
-      {
-        path: "/grn/:id",
-        element: <GRNDetail />,
-      },
-      {
-        path: "/maintenance",
-        element: <Maintenance />,
-      },
-      {
-        path: "/purchase-orders",
-        element: <PurchaseOrders />,
-      },
-      {
-        path: "/purchase-orders/:id",
-        element: <PurchaseOrderDetail />,
-      },
-      {
-        path: "/requests",
-        element: <Requests />,
-      },
-      {
-        path: "/requests/:id",
-        element: <RequestDetail />,
-      },
-      {
-        path: "/requests/approvals",
-        element: <RequestApprovals />,
-      },
-      {
-        path: "/requests/delivery",
-        element: <RequestDelivery />,
-      },
-      {
-        path: "/admin/company",
-        element: <AdminCompany />,
-      },
-      {
-        path: "/admin/departments",
-        element: <AdminDepartments />,
-      },
-      {
-        path: "/admin/integrations",
-        element: <AdminIntegrations />,
-      },
-      {
-        path: "/admin/locations",
-        element: <AdminLocations />,
-      },
-      {
-        path: "/admin/item-master",
-        element: <ItemMasterPage />,
-      },
-      {
-        path: "/admin/roles",
-        element: <AdminRoles />,
-      },
-      {
-        path: "/admin/users",
-        element: <AdminUsers />,
-      },
-      {
-        path: "/admin/workflow",
-        element: <AdminWorkflow />,
-      },
-      {
-        path: "/admin/audit-logs",
-        element: <AdminAuditLogs />,
-      },
-      {
-        path: "/vendors",
-        element: <Vendors />,
-      },
-      {
-        path: "/reports",
-        element: <Reports />,
-      },
-      // Finance routes
-      {
-        path: "/finance",
-        element: <FinanceSetup />,
-      },
-      {
-        path: "/finance/depreciation-schedule",
-        element: <DepreciationSchedule />,
-      },
-      {
-        path: "/finance/depreciation-setup",
-        element: <DepreciationSetup />,
-      },
-      {
-        path: "/finance/erp-integration",
-        element: <ERPIntegration />,
-      },
-      {
-        path: "/finance/impairment-revaluation",
-        element: <ImpairmentRevaluation />,
-      },
-      // Admin finance routes (for sidebar navigation compatibility)
-      {
-        path: "/admin/finance",
-        element: <FinanceSetup />,
-      },
-      {
-        path: "/admin/finance/depreciation-setup",
-        element: <DepreciationSetup />,
-      },
-      {
-        path: "/admin/finance/depreciation-schedule",
-        element: <DepreciationSchedule />,
-      },
-      {
-        path: "/admin/finance/impairment-revaluation",
-        element: <ImpairmentRevaluation />,
-      },
-      {
-        path: "/admin/finance/erp-integration",
-        element: <ERPIntegration />,
-      },
-    ],
-    errorElement: <NotFound />,
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+    },
   },
-]);
+});
+
+// Add this new component for protected routes
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const token = localStorage.getItem("token");
+  const location = useLocation();
+
+  // Check if token exists and is not expired
+  const isTokenExpired = () => {
+    if (!token) return true;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expirationTime = payload.exp * 1000; // Convert to milliseconds
+      return Date.now() >= expirationTime;
+    } catch (error) {
+      return true;
+    }
+  };
+
+  if (!token || isTokenExpired()) {
+    // Clear localStorage if token is expired
+    localStorage.clear();
+    // Redirect to login while saving the attempted URL
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      {/* Auth routes - no protection needed */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+
+      {/* Protected routes - wrapped in DefaultLayout and ProtectedRoute */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <DefaultLayout />
+          </ProtectedRoute>
+        }
+      >
+        {/* Default route */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        
+        {/* Main routes */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
+
+        {/* Procurement routes */}
+        <Route path="/requests">
+          <Route index element={<Requests />} />
+          <Route path="delivery" element={<DeliveryRequests />} />
+          <Route path="approvals" element={<Approvals />} />
+          <Route path=":id" element={<RequestDetail />} />
+        </Route>
+
+        {/* Asset routes */}
+        <Route path="/assets" element={<Assets />} />
+        <Route path="/assets/:id" element={<AssetDetail />} />
+        <Route path="/maintenance" element={<Maintenance />} />
+        <Route path="/vendors" element={<Vendors />} />
+
+        {/* Admin routes */}
+        <Route path="/admin">
+          <Route path="users" element={<Users />} />
+          <Route path="roles" element={<Roles />} />
+          <Route path="workflow" element={<Workflow />} />
+          <Route path="departments" element={<Departments />} />
+          <Route path="integrations" element={<Integrations />} />
+          <Route path="company" element={<CompanySetup />} />
+          <Route path="audit-logs" element={<AuditLogs />} />
+          
+          {/* Admin - Finance routes */}
+          <Route path="finance/depreciation-setup" element={<DepreciationSetup />} />
+          <Route path="finance/depreciation-schedule" element={<DepreciationSchedule />} />
+          <Route path="finance/impairment-revaluation" element={<ImpairmentRevaluation />} />
+          <Route path="finance/erp-integration" element={<ERPIntegration />} />
+        </Route>
+
+        {/* Reports */}
+        <Route path="/reports/*" element={<Reports />} />
+
+        {/* GRN routes */}
+        <Route path="/grn">
+          <Route index element={<GRNList />} />
+          <Route path="create" element={<GRNCreate />} />
+          <Route path=":id" element={<GRNDetail />} />
+        </Route>
+
+        {/* 404 route */}
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
+  );
+}
 
 function App() {
+  console.log("App rendering"); // Debug log
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <Toaster />
-    </QueryClientProvider>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <div className="relative">
+            <Toaster />
+            <Sonner />
+            <AppRoutes />
+          </div>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 }
 

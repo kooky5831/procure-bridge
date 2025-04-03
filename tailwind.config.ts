@@ -26,15 +26,15 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "rgb(63, 81, 181)", // Rich blue shade
-          foreground: "rgb(255, 255, 255)",
+          DEFAULT: "rgb(17, 24, 39)",
+          foreground: "rgb(243, 244, 246)",
         },
         secondary: {
           DEFAULT: "rgb(243, 244, 246)",
           foreground: "rgb(17, 24, 39)",
         },
         accent: {
-          DEFAULT: "rgb(99, 102, 241)", // Consistent accent color for active state
+          DEFAULT: "rgb(99, 102, 241)",
           foreground: "rgb(255, 255, 255)",
         },
         success: {
@@ -44,22 +44,6 @@ export default {
         destructive: {
           DEFAULT: "rgb(239, 68, 68)",
           foreground: "rgb(255, 255, 255)",
-        },
-        info: {
-          DEFAULT: "rgb(59, 130, 246)",
-          foreground: "rgb(255, 255, 255)",
-        },
-        warning: {
-          DEFAULT: "rgb(245, 158, 11)",
-          foreground: "rgb(255, 255, 255)",
-        },
-        muted: {
-          DEFAULT: "hsl(210 40% 96.1%)",
-          foreground: "hsl(215.4 16.3% 46.9%)",
-        },
-        card: {
-          DEFAULT: "rgb(255, 255, 255)",
-          foreground: "rgb(17, 24, 39)",
         },
       },
       borderRadius: {
@@ -89,14 +73,6 @@ export default {
           from: { transform: "translateX(100%)" },
           to: { transform: "translateX(0)" },
         },
-        pulse: {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.5" },
-        },
-        bounce: {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-5px)" },
-        },
       },
       animation: {
         shimmer: "shimmer 2s infinite",
@@ -104,18 +80,6 @@ export default {
         slideUp: "slideUp 300ms cubic-bezier(0.87, 0, 0.13, 1)",
         fadeIn: "fadeIn 300ms ease-out",
         slideInRight: "slideInRight 300ms ease-out",
-        pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        bounce: "bounce 1s ease-in-out infinite",
-      },
-      boxShadow: {
-        card: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        dropdown: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-        button: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
-        premium: "0 8px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02)",
-      },
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        heading: ['Poppins', 'sans-serif'],
       },
     },
   },

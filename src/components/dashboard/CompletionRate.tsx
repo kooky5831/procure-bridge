@@ -24,23 +24,20 @@ export function CompletionRate({
 
   return (
     <Card 
-      className={`
-        border bg-white rounded-lg
-        ${link ? 'cursor-pointer group relative transition-all duration-300 hover:shadow-md' : ''}`
-      }
+      className={`${link ? 'cursor-pointer group relative transition-all duration-200 hover:shadow-md hover:translate-y-[-2px]' : ''}`}
       onClick={() => link && navigate(link)}
     >
-      <CardContent className="p-4">
+      <CardContent className="pt-6">
         <div className="flex flex-col gap-1">
           <div className="flex justify-between items-center">
             <p className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">{title}</p>
             {link && <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-1 transition-all" />}
           </div>
-          <div className="flex flex-wrap items-baseline gap-2 mt-1">
-            <h2 className="text-2xl font-semibold group-hover:text-primary transition-colors break-all">{value}</h2>
-            {percentage !== undefined && trend && (
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-2xl font-semibold group-hover:text-primary transition-colors">{value}</h2>
+            {percentage && trend && (
               <span className={`text-sm font-medium flex items-center ${
-                trend === 'up' ? 'text-emerald-600' : 'text-rose-600'
+                trend === 'up' ? 'text-green-600' : 'text-red-600'
               }`}>
                 {trend === 'up' ? (
                   <ArrowUpIcon className="h-4 w-4 mr-1" />
@@ -52,7 +49,7 @@ export function CompletionRate({
             )}
           </div>
           {subtext && (
-            <p className="text-sm text-muted-foreground group-hover:text-muted-foreground/70 transition-colors break-words mt-1">{subtext}</p>
+            <p className="text-sm text-muted-foreground group-hover:text-muted-foreground/70 transition-colors">{subtext}</p>
           )}
         </div>
       </CardContent>
