@@ -1,69 +1,44 @@
 
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 import type { MaintenanceFormData } from "./types";
-import { useEffect, useState } from "react";
-import { assetService } from "@/services/assets";
-import { Asset } from "@/types/asset";
+import { Combobox } from "@/components/ui/combobox";
 
 interface AssetFieldProps {
   form: UseFormReturn<MaintenanceFormData>;
 }
 
-interface ApiResponse {
-  status: boolean;
-  data: Asset[];
-  message: string;
-}
+// In a real application, this would come from an API with pagination/search
+const mockAssets = [
+  { value: "AST001", label: "AST001 - HP Laptop EliteBook G8" },
+  { value: "AST002", label: "AST002 - Executive Desk" },
+  { value: "AST003", label: "AST003 - Company Vehicle" },
+];
 
 export function AssetField({ form }: AssetFieldProps) {
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchAssets = async () => {
-      try {
-        const response: unknown = await assetService.getAllAssets();
-        const typedResponse = response as ApiResponse;
-        const assetsList = typedResponse.data || [];
-        setAssets(assetsList);
-      } catch (error) {
-        console.error('Failed to fetch assets:', error);
-        setAssets([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAssets();
-  }, []);
+  // Create a safe handler for asset selection
+  const handleAssetChange = (value: string) => {
+    form.setValue("assetId", value, { shouldValidate: true });
+  };
 
   return (
     <FormField
       control={form.control}
       name="assetId"
+      rules={{ required: "Asset ID is required" }}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Asset</FormLabel>
-          <Select 
-            onValueChange={field.onChange}
-            value={field.value}
-            defaultValue={field.value}
-          >
-            <FormControl>
-              <SelectTrigger disabled={isLoading}>
-                <SelectValue placeholder={isLoading ? "Loading assets..." : "Select an asset"} />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {Array.isArray(assets) && assets.map((asset) => (
-                <SelectItem key={asset.asset_id} value={`AST${asset.asset_id}`}>
-                  {asset.asset_name} (AST{asset.asset_id})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <FormLabel>Asset ID</FormLabel>
+          <FormControl>
+            <Combobox
+              options={mockAssets}
+              value={field.value}
+              onChange={handleAssetChange}
+              placeholder="Select an asset"
+              searchPlaceholder="Search assets..."
+              className="bg-background"
+            />
+          </FormControl>
           <FormMessage />
         </FormItem>
       )}

@@ -1,5 +1,5 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { LucideIcon } from "lucide-react";
@@ -18,21 +18,22 @@ export function StatCard({ title, value, description, icon: Icon, linkText, link
   const navigate = useNavigate();
   
   return (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
+    <Card className="border rounded-lg bg-white">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+            <Icon className="h-4 w-4 text-primary" />
+          </div>
+        </div>
+        
         <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">{description}</p>
-        <Button 
-          variant="ghost" 
-          className="w-full mt-4 text-sm"
-          onClick={() => navigate(linkPath)}
-        >
-          {linkText} <ChevronRight className="h-4 w-4 ml-2" />
-        </Button>
+        <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        
+        <div className="mt-4 flex items-center text-sm text-primary font-medium cursor-pointer group" onClick={() => navigate(linkPath)}>
+          {linkText} 
+          <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+        </div>
       </CardContent>
     </Card>
   );

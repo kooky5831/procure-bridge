@@ -2,11 +2,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, FileText, Filter } from "lucide-react";
 import { GRNTable } from "@/components/grn/GRNTable";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GRN } from "@/types/grn";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Dummy data for development
 const dummyGRNs: GRN[] = [
@@ -85,6 +88,8 @@ const dummyGRNs: GRN[] = [
 export default function GRNList() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
   const ITEMS_PER_PAGE = 10;
 
   const { data: grns, isLoading } = useQuery({
@@ -106,28 +111,73 @@ export default function GRNList() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto px-4 py-6 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Goods Receipt Notes</h1>
+          <h1 className="text-2xl font-bold text-gradient">Goods Receipt Notes</h1>
           <p className="text-sm text-muted-foreground">
             Manage and track received goods
           </p>
         </div>
-        <Button onClick={() => navigate("/grn/create")}>
+        <Button 
+          onClick={() => navigate("/grn/create")}
+          className="bg-primary text-white hover:bg-primary/90"
+        >
           <Plus className="mr-2 h-4 w-4" /> Create GRN
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg border shadow-sm">
-        <GRNTable
-          grns={grns || []}
-          isLoading={isLoading}
-          currentPage={currentPage}
-          itemsPerPage={ITEMS_PER_PAGE}
-          onPageChange={setCurrentPage}
-        />
-      </div>
+      <Card className="shadow-md border overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 border-b">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+            <div>
+              <CardTitle className="text-lg">GRN Records</CardTitle>
+              <CardDescription>View and manage your goods receipt notes</CardDescription>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative">
+                <Input
+                  type="search"
+                  placeholder="Search by ID or supplier..."
+                  className="pl-9 w-full md:w-64"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="flex gap-2 items-center">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select
+                  defaultValue="all"
+                  onValueChange={setFilterStatus}
+                  value={filterStatus}
+                >
+                  <SelectTrigger className="w-32 md:w-40">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="DRAFT">Draft</SelectItem>
+                    <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                    <SelectItem value="CHECKED">Checked</SelectItem>
+                    <SelectItem value="AUTHORIZED">Authorized</SelectItem>
+                    <SelectItem value="REJECTED">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <GRNTable
+            grns={grns || []}
+            isLoading={isLoading}
+            currentPage={currentPage}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

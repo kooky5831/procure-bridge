@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AuthLayout } from "./Authlayout";
+import { AuthLayout } from "@/route/AuthLayout";
 import { Eye, EyeOff, UserPlus } from "lucide-react";
 import { authService } from '@/services/auth';
 

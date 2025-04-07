@@ -5,7 +5,7 @@ export interface Vendor {
   email: string;
   phone: string;
   address?: string;
-  service_categories: string; 
+  category: string[];
   rating?: number;
   serviceHistory?: {
     taskId: string;

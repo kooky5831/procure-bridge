@@ -22,81 +22,55 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { DisposalDatePicker } from "./disposal/DisposalDatePicker";
 import { FinancialImpactDisplay } from "./disposal/FinancialImpactDisplay";
+import { disposalReasons, disposalMethods } from "./disposal/constants";
 import { calculateFinancialImpact } from "./disposal/utils";
-import { disposalReasons } from "./disposal/constants";
-import type { DisposalDialogProps } from "./disposal/types";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { assetService } from "@/services/assets";
-
-interface BookValue {
-  type: "IFRS" | "TAX";
-  value: number;
-}
+import { DisposalDialogProps } from "./disposal/types";
 
 export function DisposalDialog({
   assetId,
   assetName,
   currentValue,
-  ifrsValue = currentValue,
-  taxValue = currentValue,
   open,
   onOpenChange,
-  onDisposalComplete,
-}: DisposalDialogProps & {
-  ifrsValue?: number;
-  taxValue?: number;
-}) {
+  onDisposalComplete
+}: DisposalDialogProps) {
   const [reason, setReason] = useState("");
+  const [method, setMethod] = useState("");
   const [date, setDate] = useState<Date>();
-  const [salvageValue, setSalvageValue] = useState("");
+  const [salvageValue, setSalvageValue] = useState("0");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedBookValue, setSelectedBookValue] = useState<"IFRS" | "TAX">("IFRS");
+  
+  const financialImpact = calculateFinancialImpact(salvageValue, currentValue);
 
-  const bookValues: BookValue[] = [
-    { type: "IFRS", value: ifrsValue },
-    { type: "TAX", value: taxValue },
-  ];
-
-  const currentBookValue = selectedBookValue === "IFRS" ? ifrsValue : taxValue;
-
-  const validateForm = () => {
+  const handleDisposal = async () => {
     if (!reason) {
       toast.error("Please select a reason for disposal");
-      return false;
+      return;
+    }
+    if (!method) {
+      toast.error("Please select a disposal method");
+      return;
     }
     if (!date) {
       toast.error("Please select a disposal date");
-      return false;
+      return;
     }
-    if (salvageValue && isNaN(parseFloat(salvageValue))) {
-      toast.error("Please enter a valid salvage value");
-      return false;
-    }
-    if (parseFloat(salvageValue) < 0) {
-      toast.error("Salvage value cannot be negative");
-      return false;
-    }
-    return true;
-  };
-
-  const handleDisposal = async () => {
-    if (!validateForm()) return;
     
     try {
       setIsSubmitting(true);
+      // Mock API call - in a real app, this would be an API request
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const disposalData = {
+      console.log("Disposing asset", {
+        assetId,
         reason,
-        disposal_date: date,
-        salvage_value: parseFloat(salvageValue) || 0,
-        book_value_type: selectedBookValue,
-        book_value: currentBookValue,
-        financial_impact: calculateFinancialImpact(salvageValue, currentBookValue),
-        notes,
-      };
-
-      await assetService.disposeAsset(assetId, disposalData);
+        method,
+        date,
+        salvageValue: parseFloat(salvageValue) || 0,
+        financialImpact,
+        notes
+      });
 
       toast.success("Asset disposed successfully");
       onOpenChange(false);
@@ -109,93 +83,48 @@ export function DisposalDialog({
     }
   };
 
-  const resetForm = () => {
-    setReason("");
-    setDate(undefined);
-    setSalvageValue("");
-    setNotes("");
-    setSelectedBookValue("IFRS");
-  };
-
   const handleClose = () => {
-    resetForm();
+    setReason("");
+    setMethod("");
+    setDate(undefined);
+    setSalvageValue("0");
+    setNotes("");
     onOpenChange(false);
   };
 
-  const impact = calculateFinancialImpact(salvageValue, currentBookValue);
-
   return (
-    <Dialog 
-      open={open} 
-      onOpenChange={(isOpen) => {
-        if (!isOpen) handleClose();
-        else onOpenChange(true);
-      }}
-    >
-      <DialogContent 
-        className="sm:max-w-[425px] overflow-visible"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        aria-describedby="disposal-dialog-description"
-      >
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Dispose Asset</DialogTitle>
-          <DialogDescription id="disposal-dialog-description">
-            Record disposal of {assetName}
+          <DialogDescription>
+            {assetName} - Current Value: ${currentValue.toLocaleString()}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label>Book Value Type</Label>
-            <RadioGroup
-              defaultValue="IFRS"
-              value={selectedBookValue}
-              onValueChange={(value) => setSelectedBookValue(value as "IFRS" | "TAX")}
-              className="flex items-center space-x-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="IFRS" id="ifrs" />
-                <Label htmlFor="ifrs">IFRS (${ifrsValue.toFixed(2)})</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="TAX" id="tax" />
-                <Label htmlFor="tax">Tax (${taxValue.toFixed(2)})</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="current-value">Current Book Value ({selectedBookValue})</Label>
-            <Input
-              id="current-value"
-              value={`$${currentBookValue.toFixed(2)}`}
-              disabled
-              className="bg-muted"
-            />
-          </div>
-
-          <div className="grid gap-2">
             <Label htmlFor="reason" className="required">Reason for Disposal</Label>
-            <Select 
-              onValueChange={setReason} 
-              value={reason}
-              required
-            >
+            <Select onValueChange={setReason} required>
               <SelectTrigger id="reason" className="bg-background">
                 <SelectValue placeholder="Select disposal reason" />
               </SelectTrigger>
-              <SelectContent 
-                position="popper" 
-                sideOffset={4}
-                className="bg-white border rounded-md shadow-md min-w-[200px] p-1"
-              >
+              <SelectContent position="popper" sideOffset={4}>
                 {disposalReasons.map((reason) => (
-                  <SelectItem 
-                    key={reason} 
-                    value={reason}
-                    className="relative flex cursor-default select-none items-center rounded-sm py-2.5 px-3 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 cursor-pointer hover:bg-slate-100"
-                  >
-                    {reason}
-                  </SelectItem>
+                  <SelectItem key={reason} value={reason}>{reason}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="method" className="required">Disposal Method</Label>
+            <Select onValueChange={setMethod} required>
+              <SelectTrigger id="method" className="bg-background">
+                <SelectValue placeholder="Select disposal method" />
+              </SelectTrigger>
+              <SelectContent position="popper" sideOffset={4}>
+                {disposalMethods.map((method) => (
+                  <SelectItem key={method} value={method}>{method}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -219,33 +148,23 @@ export function DisposalDialog({
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label>Financial Impact</Label>
-            <FinancialImpactDisplay impact={impact} />
-          </div>
+          <FinancialImpactDisplay impact={financialImpact} />
 
           <div className="grid gap-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">Notes (Optional)</Label>
             <Textarea
               id="notes"
-              placeholder="Add any additional notes..."
+              placeholder="Add any additional notes about this disposal"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
+          <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleDisposal}
-            disabled={isSubmitting}
-          >
+          <Button onClick={handleDisposal} disabled={isSubmitting}>
             {isSubmitting ? "Processing..." : "Confirm Disposal"}
           </Button>
         </DialogFooter>

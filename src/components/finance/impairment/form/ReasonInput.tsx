@@ -7,7 +7,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { ImpairmentFormData } from "../types";
 
 interface ReasonInputProps {
@@ -23,7 +23,11 @@ export function ReasonInput({ form }: ReasonInputProps) {
         <FormItem>
           <FormLabel className="text-base font-semibold">Reason for Revaluation</FormLabel>
           <FormControl>
-            <Input {...field} placeholder="Enter reason for the revaluation" className="px-3 py-5 h-auto" />
+            <Textarea
+              placeholder="Describe the reason for this revaluation (e.g., market changes, technological obsolescence, etc.)"
+              className="resize-none min-h-[120px]"
+              {...field}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
