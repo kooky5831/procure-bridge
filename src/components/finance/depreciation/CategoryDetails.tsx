@@ -6,9 +6,14 @@ import { Label } from "@/components/ui/label";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HelpCircle } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { HelpCircle, Calendar as CalendarIcon } from "lucide-react";
 import { AssetCategory } from "./types";
 import { DEPRECIATION_METHODS } from "./constants";
+import { cn } from "@/lib/utils";
+import { AuditHistory } from "./AuditHistory";
 
 interface CategoryDetailsProps {
   category: AssetCategory;
@@ -62,7 +67,10 @@ export function CategoryDetails({
                         <HelpCircle className="h-4 w-4 text-muted-foreground" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="max-w-[250px] text-sm">IFRS depreciation method based on expected useful life and economic substance.</p>
+                        <p className="max-w-[250px] text-sm">
+                          <strong>Straight-Line Method:</strong> Depreciates the asset evenly over its useful life.<br />
+                          <strong>Declining Balance Method:</strong> Depreciates the asset at a higher rate initially, decreasing over its life.
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
@@ -102,7 +110,87 @@ export function CategoryDetails({
                     <span className="text-muted-foreground">years</span>
                   </div>
                 </div>
+                
+                {/* New Residual Value field */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Label className="text-sm sm:text-base">Residual Value</Label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-[250px] text-sm">Estimated value of the asset at the end of its useful life. Typically a percentage of the initial cost.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="flex gap-4 items-center mt-2">
+                    <Input 
+                      type="number" 
+                      value={(pendingChanges.ifrsResidualValue !== undefined ? pendingChanges.ifrsResidualValue : category.ifrsResidualValue) || 0} 
+                      onChange={(e) => {
+                        onPendingChangesUpdate({ 
+                          ...pendingChanges, 
+                          ifrsResidualValue: parseFloat(e.target.value) 
+                        });
+                      }}
+                      className="w-20"
+                      min="0"
+                      max="100"
+                    />
+                    <span className="text-muted-foreground">%</span>
+                  </div>
+                </div>
+                
+                {/* New Depreciation Start Date field */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Label className="text-sm sm:text-base">Depreciation Start Date</Label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-[250px] text-sm">Date when asset depreciation starts. Typically asset in-service date or purchase date.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !pendingChanges.ifrsStartDate && !category.ifrsStartDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {pendingChanges.ifrsStartDate ? 
+                          format(pendingChanges.ifrsStartDate, "PPP") : 
+                          category.ifrsStartDate ? 
+                            format(category.ifrsStartDate, "PPP") : 
+                            "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={pendingChanges.ifrsStartDate || category.ifrsStartDate}
+                        onSelect={(date) => 
+                          onPendingChangesUpdate({ 
+                            ...pendingChanges, 
+                            ifrsStartDate: date || new Date() 
+                          })
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
+              
+              {/* Audit History Component */}
+              <AuditHistory categoryId={category.id} />
             </TabsContent>
 
             <TabsContent value="tax" className="space-y-4">
@@ -115,7 +203,10 @@ export function CategoryDetails({
                         <HelpCircle className="h-4 w-4 text-muted-foreground" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="max-w-[250px] text-sm">Tax depreciation method as per local tax regulations. Can differ from IFRS even when using the same method.</p>
+                        <p className="max-w-[250px] text-sm">
+                          <strong>Straight-Line Method:</strong> Depreciates the asset evenly over its useful life.<br />
+                          <strong>Declining Balance Method:</strong> Depreciates the asset at a higher rate initially, decreasing over its life.
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
@@ -155,7 +246,87 @@ export function CategoryDetails({
                     <span className="text-muted-foreground">years</span>
                   </div>
                 </div>
+                
+                {/* New Residual Value field */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Label className="text-sm sm:text-base">Residual Value</Label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-[250px] text-sm">Estimated value of the asset at the end of its useful life for tax purposes. Typically a percentage of the initial cost.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="flex gap-4 items-center mt-2">
+                    <Input 
+                      type="number" 
+                      value={(pendingChanges.taxResidualValue !== undefined ? pendingChanges.taxResidualValue : category.taxResidualValue) || 0} 
+                      onChange={(e) => {
+                        onPendingChangesUpdate({ 
+                          ...pendingChanges, 
+                          taxResidualValue: parseFloat(e.target.value) 
+                        });
+                      }}
+                      className="w-20"
+                      min="0"
+                      max="100"
+                    />
+                    <span className="text-muted-foreground">%</span>
+                  </div>
+                </div>
+                
+                {/* New Depreciation Start Date field */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Label className="text-sm sm:text-base">Depreciation Start Date</Label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-[250px] text-sm">Date when asset depreciation starts for tax purposes. May differ from IFRS start date due to tax rules.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !pendingChanges.taxStartDate && !category.taxStartDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {pendingChanges.taxStartDate ? 
+                          format(pendingChanges.taxStartDate, "PPP") : 
+                          category.taxStartDate ? 
+                            format(category.taxStartDate, "PPP") : 
+                            "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={pendingChanges.taxStartDate || category.taxStartDate}
+                        onSelect={(date) => 
+                          onPendingChangesUpdate({ 
+                            ...pendingChanges, 
+                            taxStartDate: date || new Date() 
+                          })
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
+              
+              {/* Audit History Component */}
+              <AuditHistory categoryId={category.id} />
             </TabsContent>
           </Tabs>
 

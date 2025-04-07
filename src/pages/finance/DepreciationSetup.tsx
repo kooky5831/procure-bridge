@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,8 +24,12 @@ export default function DepreciationSetup() {
       name: "IT Equipment", 
       ifrsMethod: "straight-line", 
       ifrsYears: 3,
+      ifrsResidualValue: 10, // 10% residual value
+      ifrsStartDate: new Date(),
       taxMethod: "declining-balance",
       taxYears: 2,
+      taxResidualValue: 5, // 5% residual value
+      taxStartDate: new Date(),
       ifrsClassification: IFRS_CLASSIFICATIONS[0],
       ifrsCategory: IFRS_CATEGORIES[0],
       taxCategory: TAX_CATEGORIES[0]
@@ -34,16 +39,24 @@ export default function DepreciationSetup() {
       name: "Office Furniture", 
       ifrsMethod: "straight-line", 
       ifrsYears: 5,
+      ifrsResidualValue: 15, // 15% residual value
+      ifrsStartDate: new Date(),
       taxMethod: "straight-line",
-      taxYears: 4
+      taxYears: 4,
+      taxResidualValue: 10, // 10% residual value
+      taxStartDate: new Date()
     },
     { 
       id: "3", 
       name: "Vehicles", 
       ifrsMethod: "declining-balance", 
       ifrsYears: 4,
+      ifrsResidualValue: 20, // 20% residual value
+      ifrsStartDate: new Date(),
       taxMethod: "declining-balance",
-      taxYears: 3
+      taxYears: 3,
+      taxResidualValue: 15, // 15% residual value
+      taxStartDate: new Date()
     },
   ]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,8 +17,6 @@ import {
 } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { companyService } from "@/services/company";
-import { EditLocationDialog } from "./EditLocationDialog";
 
 const mockLocations = Array(150).fill(null).map((_, index) => ({
   id: `${index + 1}`,
@@ -35,52 +33,26 @@ const ITEMS_PER_PAGE = 10;
 
 export function LocationsList() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState("");
   const [filterCountry, setFilterCountry] = useState("all");
   const [filterCity, setFilterCity] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [locationData, setLocationData] = useState(null)
-  const [isLoading, setIsLoading] = useState(false);
-  const [reload, setReload] = useState(false);
 
-  const filteredLocations = locationData?.filter(location => {
-    const matchesSearch = location?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         location?.code.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCountry = filterCountry === "all" || location?.country === filterCountry;
-    const matchesCity = filterCity === "all" || location?.city === filterCity;
+  const filteredLocations = mockLocations.filter(location => {
+    const matchesSearch = location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         location.code.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCountry = filterCountry === "all" || location.country === filterCountry;
+    const matchesCity = filterCity === "all" || location.city === filterCity;
 
     return matchesSearch && matchesCountry && matchesCity;
   });
 
-  const totalPages = Math.ceil(filteredLocations?.length / ITEMS_PER_PAGE);
-  const paginatedLocations = filteredLocations?.slice(
+  const totalPages = Math.ceil(filteredLocations.length / ITEMS_PER_PAGE);
+  const paginatedLocations = filteredLocations.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
-  useEffect(()=>{
-    const fetchLocationData = async () => {
-      setIsLoading(true);
-      try{
-        const data = await companyService.getLocation();
-        setLocationData(data);
-      } catch (error){
-        console.error('Error fetching user details:', error);
-      }finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchLocationData()
-  }, [])
-
-  useEffect(() => {
-    if (reload) {
-      window.location.reload();
-    }
-  }, [reload]);
   return (
     <Card>
       <CardContent className="pt-6">
@@ -88,7 +60,7 @@ export function LocationsList() {
           <div>
             <h2 className="text-lg font-semibold">Locations</h2>
             <p className="text-sm text-muted-foreground">
-              Manage your organization's locations and branches ({filteredLocations?.length} total)
+              Manage your organization's locations and branches ({filteredLocations.length} total)
             </p>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)}>
@@ -156,36 +128,24 @@ export function LocationsList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    <div className="flex items-center justify-center space-x-2">
-                      <svg className="animate-spin h-5 w-5 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/>
-                        <path fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" className="opacity-75"/>
-                      </svg>
-                      <span>Loading locations...</span>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : locationData?.length === 0 ? (
+              {paginatedLocations.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8">
                     No locations found matching your filters
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredLocations?.map((location) => (
+                paginatedLocations.map((location) => (
                   <TableRow key={location.id}>
                     <TableCell>{location.name}</TableCell>
                     <TableCell>{location.code}</TableCell>
-                    <TableCell>{location.location_type}</TableCell>
+                    <TableCell>{location.type}</TableCell>
                     <TableCell>{location.country}</TableCell>
                     <TableCell>{location.city}</TableCell>
-                    <TableCell>Active</TableCell>
+                    <TableCell>{location.status}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => {setEditDialogOpen(true); setSelectedId(location.id)}}>
+                        <Button variant="ghost" size="icon">
                           <Edit2 className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon">
@@ -255,16 +215,6 @@ export function LocationsList() {
         <CreateLocationDialog
           open={createDialogOpen}
           onOpenChange={setCreateDialogOpen}
-          onReload={setReload}
-          reload={reload}
-        />
-
-        <EditLocationDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          onReload={setReload}
-          reload={reload}
-          selectedId={selectedId}
         />
       </CardContent>
     </Card>

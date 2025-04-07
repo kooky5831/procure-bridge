@@ -1,118 +1,159 @@
 
-import { Eye, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TransferDialog } from "@/components/assets/TransferDialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Eye, MoreHorizontal, Trash2, ArrowRightLeft, FileEdit, Download, CheckSquare } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Asset {
-  id: number;
-  asset_id: string;
-  asset_name: string;
-  name: string;  
-  description?: string;
-  category?: string;
-  location?: string;
+  id: string;
+  name: string;
+  category: string;
+  location: {
+    id: string;
+    name: string;
+  };
   status: string;
-  purchase_price?: string;  
-  purchase_date?: string;
-  cost?: string;
+  value: number;
 }
-
-// Helper function for status variant
-const getStatusVariant = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case 'completed':
-      return 'default';
-    case 'in_progress':
-      return 'secondary';
-    case 'incomplete':
-      return 'destructive';
-    default:
-      return 'outline';
-  }
-};
 
 interface AssetTableProps {
   assets: Asset[];
   onViewAsset: (id: string) => void;
   onDispose: (asset: Asset) => void;
   onTransferComplete: () => void;
+  selectedAssets?: string[];
+  onAssetSelect?: (assetId: string) => void;
+  showSelection?: boolean;
 }
 
-export function AssetTable({ assets, onViewAsset, onDispose, onTransferComplete }: AssetTableProps) {
+export function AssetTable({ 
+  assets, 
+  onViewAsset, 
+  onDispose,
+  onTransferComplete,
+  selectedAssets = [],
+  onAssetSelect,
+  showSelection = false
+}: AssetTableProps) {
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'In Service':
+        return "bg-green-100 text-green-800 hover:bg-green-200";
+      case 'Under Repair':
+        return "bg-amber-100 text-amber-800 hover:bg-amber-200";
+      case 'Disposed':
+        return "bg-red-100 text-red-800 hover:bg-red-200";
+      case 'In Transit':
+        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+    }
+  };
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
+          {showSelection && (
+            <TableHead className="w-[50px]">
+              <Checkbox />
+            </TableHead>
+          )}
           <TableHead>Asset ID</TableHead>
-          <TableHead>Name/Description</TableHead>
+          <TableHead>Name</TableHead>
           <TableHead>Category</TableHead>
           <TableHead>Location</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Net Book Value</TableHead>
-          <TableHead>Actions</TableHead>
+          <TableHead className="text-right">Value</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {assets.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={7} className="text-center">
-              No assets found matching your filters
+        {assets.map((asset) => (
+          <TableRow key={asset.id} className="hover:bg-muted/50">
+            {showSelection && (
+              <TableCell>
+                <Checkbox 
+                  checked={selectedAssets.includes(asset.id)}
+                  onCheckedChange={() => onAssetSelect?.(asset.id)}
+                  disabled={asset.status === 'Disposed'}
+                />
+              </TableCell>
+            )}
+            <TableCell className="font-medium">{asset.id}</TableCell>
+            <TableCell>{asset.name}</TableCell>
+            <TableCell>{asset.category}</TableCell>
+            <TableCell>{asset.location.name}</TableCell>
+            <TableCell>
+              <Badge 
+                variant="outline" 
+                className={`font-normal ${getStatusColor(asset.status)}`}
+              >
+                {asset.status}
+              </Badge>
+            </TableCell>
+            <TableCell className="text-right">${asset.value.toLocaleString()}</TableCell>
+            <TableCell className="text-right relative">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-white border rounded-lg shadow-lg z-[100] min-w-[180px]">
+                  <DropdownMenuLabel className="font-semibold text-gray-700">Actions</DropdownMenuLabel>
+                  <DropdownMenuItem 
+                    onClick={() => onViewAsset(asset.id)}
+                    className="cursor-pointer flex items-center py-2 hover:bg-primary/10"
+                  >
+                    <Eye className="mr-2 h-4 w-4 text-primary" />
+                    <span className="text-gray-800">View Details</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    disabled={asset.status === 'Disposed'} 
+                    className="cursor-pointer flex items-center py-2 hover:bg-primary/10 data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
+                  >
+                    <FileEdit className="mr-2 h-4 w-4 text-gray-600" />
+                    <span className="text-gray-800">Edit Asset</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    disabled={asset.status === 'Disposed'} 
+                    className="cursor-pointer flex items-center py-2 hover:bg-primary/10 data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
+                  >
+                    <ArrowRightLeft className="mr-2 h-4 w-4 text-gray-600" />
+                    <span className="text-gray-800">Transfer</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-gray-100" />
+                  <DropdownMenuItem 
+                    onClick={() => onDispose(asset)} 
+                    disabled={asset.status === 'Disposed'} 
+                    className="cursor-pointer flex items-center py-2 hover:bg-red-50 data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4 text-red-500" />
+                    <span className="text-red-500">Dispose</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer flex items-center py-2 hover:bg-primary/10">
+                    <Download className="mr-2 h-4 w-4 text-gray-600" />
+                    <span className="text-gray-800">Export Data</span>
+                  </DropdownMenuItem>
+                  {showSelection && (
+                    <DropdownMenuItem 
+                      onClick={() => onAssetSelect?.(asset.id)} 
+                      disabled={asset.status === 'Disposed'} 
+                      className="cursor-pointer flex items-center py-2 hover:bg-primary/10 data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
+                    >
+                      <CheckSquare className="mr-2 h-4 w-4 text-gray-600" />
+                      <span className="text-gray-800">{selectedAssets.includes(asset.id) ? 'Deselect' : 'Select'}</span>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </TableCell>
           </TableRow>
-        ) : (
-          assets.map((asset) => (
-            <TableRow key={asset.id}>
-              <TableCell>{asset.asset_id}</TableCell>
-              <TableCell>
-                <div>
-                  <p className="font-medium">{asset.name}</p>
-                  <p className="text-sm text-muted-foreground">{asset.description || 'No description'}</p>
-                </div>
-              </TableCell>
-              <TableCell>{asset.category || 'N/A'}</TableCell>
-              <TableCell>{asset.location || 'N/A'}</TableCell>
-              <TableCell>
-                <Badge variant={getStatusVariant(asset.status)}>
-                  {asset.status}
-                </Badge>
-              </TableCell>
-              <TableCell>{asset.purchase_price ? `$${asset.purchase_price}` : 'N/A'}</TableCell>
-              <TableCell>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onViewAsset(asset.id.toString())}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <TransferDialog
-                    assetId={asset.id.toString()}
-                    assetName={asset.asset_name}
-                    currentLocation={asset.location || 'No location'}
-                    onTransferComplete={onTransferComplete}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDispose(asset)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))
-        )}
+        ))}
       </TableBody>
     </Table>
   );

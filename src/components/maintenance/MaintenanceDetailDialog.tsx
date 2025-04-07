@@ -22,15 +22,6 @@ export function MaintenanceDetailDialog({
 }: MaintenanceDetailDialogProps) {
   if (!task) return null;
 
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'Not scheduled';
-    try {
-      return format(new Date(dateString), 'PPP');
-    } catch (error) {
-      return dateString;
-    }
-  };
-
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -51,7 +42,7 @@ export function MaintenanceDetailDialog({
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Task ID</Label>
             <div className="col-span-3">
-              <Input value={task.task_id} readOnly />
+              <Input value={task.id} readOnly />
             </div>
           </div>
 
@@ -67,25 +58,16 @@ export function MaintenanceDetailDialog({
             <Label className="text-right">Scheduled Date</Label>
             <div className="col-span-3">
               <Input 
-                value={formatDate(task.scheduledDate)} 
+                value={format(new Date(task.scheduledDate), 'PPP')} 
                 readOnly 
               />
             </div>
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Type</Label>
-            <div className="col-span-3">
-              <Input value={task.maintenanceType} readOnly />
-            </div>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Cost</Label>
             <div className="col-span-3">
-              <Input 
-                value={task.cost ? `$${Number(task.cost).toFixed(2)}` : 'N/A'} 
-                readOnly 
-              />
+              <Input value={`$${task.cost.toFixed(2)}`} readOnly />
             </div>
           </div>
 

@@ -29,22 +29,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { departmentService } from "@/services/department";
 
 const formSchema = z.object({
   name: z.string().min(2, "Department name must be at least 2 characters"),
   description: z.string().optional(),
-  manager: z.string().optional(),
+  managerId: z.string().optional(),
 });
 
 interface CreateDepartmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  reload: boolean
-  onReload:(reload: boolean) => void;
 }
 
-export function CreateDepartmentDialog({ open, onOpenChange, onReload}: CreateDepartmentDialogProps) {
+export function CreateDepartmentDialog({ open, onOpenChange }: CreateDepartmentDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -52,24 +49,22 @@ export function CreateDepartmentDialog({ open, onOpenChange, onReload}: CreateDe
     defaultValues: {
       name: "",
       description: "",
-      manager: "",
+      managerId: "",
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
     try {
-      await departmentService.postDepartment(values);
+      setIsLoading(true);
+      // API call would go here
       console.log("Creating department:", values);
       toast.success("Department created successfully");
       form.reset();
       onOpenChange(false);
-      onReload(true)
     } catch (error) {
       toast.error("Failed to create department");
     } finally {
       setIsLoading(false);
-      onReload(true)
     }
   };
 
@@ -116,7 +111,7 @@ export function CreateDepartmentDialog({ open, onOpenChange, onReload}: CreateDe
             />
             <FormField
               control={form.control}
-              name="manager"
+              name="managerId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Department Manager (Optional)</FormLabel>

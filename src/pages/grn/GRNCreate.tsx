@@ -1,11 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileUp, Package, PackageCheck, Plus, Search, Trash2, X } from "lucide-react";
+import { FileUp, Package, PackageCheck, Search, Trash2, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -21,17 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { Request } from "@/components/dashboard/types";
+import { format } from "date-fns";
 
 interface GRNItem {
   item_name: string;
@@ -44,26 +35,17 @@ interface GRNItem {
   location?: string;
 }
 
-interface LinkedRequest {
+interface ApprovedRequest {
   id: string;
   title: string;
   asset_category: string;
   quantity: number;
   unit_cost: number;
+  status: string;
+  created_by: string;
+  created_at: string;
+  description?: string;
 }
-
-const ASSET_CATEGORIES = [
-  { value: "IT_EQUIPMENT", label: "IT Equipment" },
-  { value: "FURNITURE", label: "Furniture" },
-  { value: "VEHICLES", label: "Vehicles" },
-  { value: "OFFICE_EQUIPMENT", label: "Office Equipment" },
-  { value: "MACHINERY", label: "Machinery" },
-  { value: "ELECTRONICS", label: "Electronics" },
-  { value: "TOOLS", label: "Tools" },
-  { value: "SOFTWARE", label: "Software" },
-  { value: "NETWORKING", label: "Networking Equipment" },
-  { value: "OTHER", label: "Other" },
-] as const;
 
 const LOCATIONS = [
   "Main Office",
@@ -80,43 +62,79 @@ export default function GRNCreate() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [matchingRequests, setMatchingRequests] = useState<LinkedRequest[]>([]);
   const [deliveryNote, setDeliveryNote] = useState("");
-  const [items, setItems] = useState<GRNItem[]>([{
-    item_name: "",
-    description: "",
-    quantity: 1,
-    unit_price: 0,
-    asset_category: "",
-    condition_notes: "",
-    location: ""
-  }]);
+  const [grnNumber, setGrnNumber] = useState("");
+  const [purchaseOrderNumber, setPurchaseOrderNumber] = useState("");
+  const [items, setItems] = useState<GRNItem[]>([]);
   const [supplierName, setSupplierName] = useState("");
   const [receivedDate, setReceivedDate] = useState("");
   const [notes, setNotes] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [approvedRequests, setApprovedRequests] = useState<ApprovedRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const searchRequests = async (searchTerm: string) => {
-    if (!searchTerm) {
-      setMatchingRequests([]);
-      return;
+  useEffect(() => {
+    fetchApprovedRequests();
+    generateDocumentNumbers();
+  }, []);
+
+  const generateDocumentNumbers = async () => {
+    const today = format(new Date(), 'yyyyMMdd');
+    
+    // Get today's GRNs using eq and then filter with ilike
+    const { data: todayGrns } = await supabase
+      .from('goods_receipt_notes')
+      .select('grn_number')
+      .eq('status', 'DRAFT')
+      .eq('grn_number', `GRN-${today}-%`);
+
+    const { data: todayPos } = await supabase
+      .from('goods_receipt_notes')
+      .select('purchase_order_number')
+      .eq('status', 'DRAFT')
+      .eq('purchase_order_number', `PO-${today}-%`);
+
+    // Calculate next sequence numbers
+    const nextGrnSeq = String((todayGrns?.length || 0) + 1).padStart(4, '0');
+    const nextPoSeq = String((todayPos?.length || 0) + 1).padStart(4, '0');
+
+    // Set the generated numbers
+    setGrnNumber(`GRN-${today}-${nextGrnSeq}`);
+    setPurchaseOrderNumber(`PO-${today}-${nextPoSeq}`);
+  };
+
+  const fetchApprovedRequests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('requests')
+        .select('*')
+        .eq('status', 'APPROVED')
+        .eq('grn_status', 'PENDING');
+
+      if (error) throw error;
+
+      setApprovedRequests(data || []);
+      const initialItems = (data || []).map(request => ({
+        item_name: request.title,
+        description: request.description || '',
+        quantity: request.quantity,
+        unit_price: request.unit_cost,
+        asset_category: request.asset_category,
+        condition_notes: '',
+        request_id: request.id,
+        location: ''
+      }));
+      setItems(initialItems);
+    } catch (error) {
+      console.error('Error fetching approved requests:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load approved requests",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    const { data: requests, error } = await supabase
-      .from('requests')
-      .select('*')
-      .eq('status', 'APPROVED')
-      .eq('grn_status', 'PENDING')
-      .ilike('title', `%${searchTerm}%`)
-      .limit(5);
-
-    if (error) {
-      console.error('Error searching requests:', error);
-      return;
-    }
-
-    setMatchingRequests(requests || []);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,46 +146,10 @@ export default function GRNCreate() {
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
-  const addItem = () => {
-    setItems([...items, {
-      item_name: "",
-      description: "",
-      quantity: 1,
-      unit_price: 0,
-      asset_category: "",
-      condition_notes: "",
-      location: ""
-    }]);
-  };
-
-  const removeItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
-  };
-
   const updateItem = (index: number, field: keyof GRNItem, value: string | number) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     setItems(newItems);
-
-    // If updating item name, search for matching requests
-    if (field === 'item_name' && typeof value === 'string') {
-      searchRequests(value);
-    }
-  };
-
-  const linkRequest = (index: number, request: LinkedRequest) => {
-    const newItems = [...items];
-    newItems[index] = {
-      ...newItems[index],
-      item_name: request.title,
-      asset_category: request.asset_category,
-      quantity: request.quantity,
-      unit_price: request.unit_cost,
-      request_id: request.id
-    };
-    setItems(newItems);
-    setSearchTerm("");
-    setMatchingRequests([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -183,6 +165,8 @@ export default function GRNCreate() {
           notes,
           status: 'DRAFT',
           workflow_step: 1,
+          grn_number: grnNumber,
+          purchase_order_number: purchaseOrderNumber,
           created_by: (await supabase.auth.getUser()).data.user?.id
         })
         .select()
@@ -202,7 +186,6 @@ export default function GRNCreate() {
 
       if (itemsError) throw itemsError;
 
-      // Update request status if items are linked to requests
       for (const item of items) {
         if (item.request_id) {
           const { error: requestError } = await supabase
@@ -245,6 +228,10 @@ export default function GRNCreate() {
     }
   };
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-8">Loading...</div>;
+  }
+
   return (
     <Sheet open onOpenChange={() => navigate('/grn')} modal>
       <SheetContent 
@@ -260,7 +247,6 @@ export default function GRNCreate() {
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
-          {/* Delivery Information Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-lg font-semibold">
               <Package className="h-5 w-5" />
@@ -268,6 +254,24 @@ export default function GRNCreate() {
             </div>
             
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="grnNumber">GRN Number</Label>
+                <Input
+                  id="grnNumber"
+                  value={grnNumber}
+                  readOnly
+                  className="bg-muted"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="purchaseOrderNumber">Purchase Order Number</Label>
+                <Input
+                  id="purchaseOrderNumber"
+                  value={purchaseOrderNumber}
+                  readOnly
+                  className="bg-muted"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="supplierName">Supplier Name</Label>
                 <Input
@@ -311,126 +315,34 @@ export default function GRNCreate() {
             </div>
           </div>
 
-          {/* Items Section */}
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="flex items-center gap-2 text-lg font-semibold">
-                <Package className="h-5 w-5" />
-                Received Items
-              </h2>
-              <Button type="button" onClick={addItem} variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Item
-              </Button>
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <Package className="h-5 w-5" />
+              Items to Receive
             </div>
 
             <div className="space-y-4">
               {items.map((item, index) => (
                 <div key={index} className="border p-4 rounded-lg space-y-4">
                   <div className="flex justify-between items-start">
-                    <h3 className="font-medium flex items-center gap-2">
-                      Item {index + 1}
-                      {item.request_id && (
-                        <Badge variant="outline" className="ml-2">
-                          Linked to Request
-                        </Badge>
-                      )}
-                    </h3>
-                    {items.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeItem(index)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    )}
+                    <div className="space-y-1">
+                      <h3 className="font-medium">{item.item_name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {item.quantity} items at ${item.unit_price} each
+                      </p>
+                      <Badge variant="outline" className="mt-1">
+                        {item.asset_category}
+                      </Badge>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor={`item-name-${index}`}>Item Name</Label>
-                      <div className="relative">
-                        <Input
-                          id={`item-name-${index}`}
-                          value={item.item_name}
-                          onChange={(e) => updateItem(index, 'item_name', e.target.value)}
-                          placeholder="Enter item name or search requests"
-                          required
-                        />
-                        {matchingRequests.length > 0 && (
-                          <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md">
-                            <Command>
-                              <CommandList>
-                                <CommandGroup heading="Matching Requests">
-                                  {matchingRequests.map((request) => (
-                                    <CommandItem
-                                      key={request.id}
-                                      onSelect={() => linkRequest(index, request)}
-                                      className="cursor-pointer"
-                                    >
-                                      <div className="flex flex-col gap-1">
-                                        <div>{request.title}</div>
-                                        <div className="text-sm text-muted-foreground">
-                                          {request.quantity} items at ${request.unit_cost} each
-                                        </div>
-                                      </div>
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`asset-category-${index}`}>Asset Category</Label>
-                      <Select
-                        value={item.asset_category}
-                        onValueChange={(value) => updateItem(index, 'asset_category', value)}
-                      >
-                        <SelectTrigger id={`asset-category-${index}`}>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ASSET_CATEGORIES.map((category) => (
-                            <SelectItem key={category.value} value={category.value}>
-                              {category.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`quantity-${index}`}>Quantity</Label>
-                      <Input
-                        id={`quantity-${index}`}
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`unit-price-${index}`}>Unit Price</Label>
-                      <Input
-                        id={`unit-price-${index}`}
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.unit_price}
-                        onChange={(e) => updateItem(index, 'unit_price', parseFloat(e.target.value))}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`location-${index}`}>Location</Label>
+                      <Label htmlFor={`location-${index}`}>Receiving Location</Label>
                       <Select
                         value={item.location}
                         onValueChange={(value) => updateItem(index, 'location', value)}
+                        required
                       >
                         <SelectTrigger id={`location-${index}`}>
                           <SelectValue placeholder="Select a location" />
@@ -444,33 +356,28 @@ export default function GRNCreate() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="col-span-2 space-y-2">
-                      <Label htmlFor={`description-${index}`}>Description</Label>
-                      <Textarea
-                        id={`description-${index}`}
-                        value={item.description}
-                        onChange={(e) => updateItem(index, 'description', e.target.value)}
-                        placeholder="Enter item description"
-                        rows={2}
-                      />
-                    </div>
-                    <div className="col-span-2 space-y-2">
+                    <div className="space-y-2">
                       <Label htmlFor={`condition-${index}`}>Condition Notes</Label>
                       <Textarea
                         id={`condition-${index}`}
                         value={item.condition_notes}
                         onChange={(e) => updateItem(index, 'condition_notes', e.target.value)}
-                        placeholder="Enter condition notes if any"
+                        placeholder="Enter any notes about the condition of the items"
                         rows={2}
                       />
                     </div>
                   </div>
                 </div>
               ))}
+
+              {items.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  No approved requests awaiting delivery
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Supporting Documents Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-lg font-semibold">
               <FileUp className="h-5 w-5" />
@@ -529,7 +436,7 @@ export default function GRNCreate() {
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || items.length === 0}
             >
               {isSubmitting ? "Creating..." : "Create GRN"}
             </Button>

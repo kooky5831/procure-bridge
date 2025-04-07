@@ -14,7 +14,6 @@ export interface MaintenanceTask {
   description?: string;
   vendor?: string;
   invoiceUrl?: string;
-  task_id: string;
   completedDate?: string;
   completedBy?: string;
   notes?: string[];
@@ -25,18 +24,4 @@ export interface MaintenanceTask {
     type: string;
     uploadedAt: string;
   }[];
-}
-export interface Maintenance {
-  id?: string;
-  task_id?: string;
-  maintenance_type: 'internal_maintenance' | 'external_maintenance';
-  description: string;
-  scheduled_date: string;
-  cost: string;
-  asset: number;
-  company: number;
-  asset_name?: string;
-  vendor_name?: string;
-  vendor?: number;
-  status: 'incomplete' | 'in_progress' | 'completed';
 }

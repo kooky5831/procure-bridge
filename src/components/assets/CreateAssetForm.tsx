@@ -13,13 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { AssetLocation } from "@/types/asset";
-import { assetService } from "@/services/assets";
-import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 interface CreateAssetFormProps {
-  onSuccess: (data: any) => void;
+  onSuccess: () => void;
   categories: string[];
   locations: AssetLocation[];
+  defaultValues?: FormData;
 }
 
 interface FormData {
@@ -30,10 +30,9 @@ interface FormData {
   purchaseDate: string;
 }
 
-export function CreateAssetForm({ onSuccess, categories = [], locations = [] }: CreateAssetFormProps) {
-  const { toast } = useToast();
+export function CreateAssetForm({ onSuccess, categories = [], locations = [], defaultValues }: CreateAssetFormProps) {
   const form = useForm<FormData>({
-    defaultValues: {
+    defaultValues: defaultValues || {
       name: "",
       category: "",
       locationId: "",
@@ -41,60 +40,25 @@ export function CreateAssetForm({ onSuccess, categories = [], locations = [] }: 
       purchaseDate: new Date().toISOString().split('T')[0],
     },
   });
+
+  // Update form values when defaultValues changes
+  useEffect(() => {
+    if (defaultValues) {
+      form.reset(defaultValues);
+    }
+  }, [defaultValues, form]);
+
   const onSubmit = async (data: FormData) => {
     try {
-      const categoryMapping = {
-        'IT Equipment': 'it_equipment',
-        'Office Equipment': 'office_equipment',
-        'Manufacturing Equipment': 'manufacturing_equipment',
-        'Vehicle': 'vehicle',
-        'Furniture': 'furniture'
-      };
-      
-      const selectedLocation = locations.find(loc => Number(loc.id) === Number(data.locationId));
-      
-      if (!selectedLocation) {
-        toast({
-          title: "Error",
-          description: `Location with ID ${data.locationId} not found`,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const locationId = parseInt(selectedLocation.id, 10);
-      
-      const formattedData = {
-        name: data.name.trim(),
-        category: categoryMapping[data.category] || data.category.toLowerCase(),
-        purchase_price: data.purchasePrice,
-        purchase_date: data.purchaseDate,
-        location: locationId,
-        status: "in_service",
-        company: 1
-      };
-
-      onSuccess(formattedData);
+      // In a real app, this would be an API call
+      console.log("Creating asset:", data);
+      onSuccess();
       form.reset();
-    } catch (error: any) {
-      console.error("Error details:", {
-        message: error.message,
-        response: error.response?.data,
-        requestData: data,
-        status: error.response?.status
-      });
-      
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          "Failed to create asset. Please try again.";
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+    } catch (error) {
+      console.error("Error creating asset:", error);
     }
   };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -154,8 +118,8 @@ export function CreateAssetForm({ onSuccess, categories = [], locations = [] }: 
                 </FormControl>
                 <SelectContent>
                   {locations.map((location) => (
-                    <SelectItem key={location.id} value={String(location.id)}>
-                      {location.name} ({location.code})
+                    <SelectItem key={location.id} value={location.id}>
+                      {location.name} ({location.code}) - {location.city}
                     </SelectItem>
                   ))}
                 </SelectContent>
